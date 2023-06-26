@@ -32,7 +32,7 @@ class Cell:
             if self.is_touching_food(closest_food):
                 self.health += closest_food.size
                 self.energy += closest_food.size
-                self.size += random.randint(1, 2)
+                self.size += closest_food.size
                 food_list.remove(closest_food)
 
     def distance_to_food(self, food):
@@ -81,9 +81,9 @@ pygame.display.set_caption("Cell Evolution")
 # Main simulation loop
 def simulate_evolution():
     cell = Cell()
-    food_list = []
-
     clock = pygame.time.Clock()
+    food_list = []
+    timer = 0
 
     while cell.is_alive():
         for event in pygame.event.get():
@@ -92,21 +92,24 @@ def simulate_evolution():
                 return
 
         cell.update(food_list)
+        timer += 1
 
         # Create new food randomly
-        if random.random() < 0.45:
+        if random.random() < 0.25:
             food = Food()
             food_list.append(food)
 
         screen.fill(WHITE)
 
         # Display cell information
-        font = pygame.font.Font(None, 28)
+        font = pygame.font.Font(None, 18)
         text_health = font.render("Health: {}".format(cell.health), True, BLACK)
         text_energy = font.render("Energy: {}".format(cell.energy), True, BLACK)
-
+        text_timer = font.render("Timer: {}".format(timer), True, BLACK)
+        
         screen.blit(text_health, (20, 20))
-        screen.blit(text_energy, (20, 60))
+        screen.blit(text_energy, (100, 20))
+        screen.blit(text_timer, (180, 20))
 
         cell.display_cell(screen)
 
@@ -126,6 +129,10 @@ def simulate_evolution():
     text_game_over = font_large.render("Game Over", True, BLACK)
     text_game_over_rect = text_game_over.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 50))
     screen.blit(text_game_over, text_game_over_rect)
+
+    # Display score for the cell
+    text_timer = font.render("Your Cell lasted {} seconds.".format(timer), True, BLACK)
+    screen.blit(text_timer, (WIDTH // 2 - 80, HEIGHT // 2))
 
     # Display restart button
     font_small = pygame.font.Font(None, 28)
