@@ -118,7 +118,36 @@ def simulate_evolution():
 
         clock.tick(1)  # Set the desired frame rate
 
-    print("The cell has died.")
+    # Create an ending screen
+    screen.fill(WHITE)
+
+    # Display game over message
+    font_large = pygame.font.Font(None, 48)
+    text_game_over = font_large.render("Game Over", True, BLACK)
+    text_game_over_rect = text_game_over.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 50))
+    screen.blit(text_game_over, text_game_over_rect)
+
+    # Display restart button
+    font_small = pygame.font.Font(None, 28)
+    text_restart = font_small.render("Restart", True, BLACK)
+    text_restart_rect = text_restart.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 50))
+    pygame.draw.rect(screen, GREEN, (text_restart_rect.x - 10, text_restart_rect.y - 5,
+                                     text_restart_rect.width + 20, text_restart_rect.height + 10))
+    screen.blit(text_restart, text_restart_rect)
+
+    pygame.display.flip()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                if text_restart_rect.collidepoint(mouse_pos):
+                    # Restart the simulation
+                    simulate_evolution()
+                    return
 
 # Run the simulation
 simulate_evolution()
