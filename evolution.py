@@ -162,7 +162,7 @@ class Generation:
 
     def reproduce_cells(self):
         """
-        Reproduce cells to create the next generation.
+        Reproduce cells to create the next generation with visual changes.
         """
         if len(self.cells) == 0:
             self.cells = [Cell() for _ in range(self.population_size)]
@@ -176,10 +176,17 @@ class Generation:
                     parent = random.choice(parents)
                     child = Cell()
 
-                    # Inherit properties from the parent with slight variations
-                    child.health = max(0, min(200, random.gauss(parent.health, 10)))
-                    child.energy = max(0, min(200, random.gauss(parent.energy, 10)))
-                    child.size = max(5, min(100, random.gauss(parent.size, 5)))
+                    # Inherit properties from the parent
+                    child.health = parent.health
+                    child.energy = parent.energy
+                    child.size = parent.size
+
+                    # Modify the color of the child cell
+                    child.color = (
+                        (parent.color[0] + random.randint(-10, 10)) % 256,
+                        (parent.color[1] + random.randint(-10, 10)) % 256,
+                        (parent.color[2] + random.randint(-10, 10)) % 256,
+                    )
 
                     new_generation.append(child)
 
