@@ -148,6 +148,77 @@ class Food:
         """
         pygame.draw.circle(screen, self.color, self.position, self.size)
 
+class Enemy:
+    def __init__(self):
+        """
+        Initialize an enemy object with random attributes.
+        """
+        self.size = random.randint(5, 10)
+        self.position = [random.randint(0, WIDTH), random.randint(0, HEIGHT)]
+        self.color = (255, 0, 0)
+
+    def move_randomly(self):
+            """
+            Move the enemy randomly within the screen boundaries.
+            """
+            dx = random.randint(-5, 5)
+            dy = random.randint(-5, 5)
+
+            self.position[0] = max(0, min(self.position[0] + dx, WIDTH))
+            self.position[1] = max(0, min(self.position[1] + dy, HEIGHT))
+
+    def update(self):
+        """
+        Update the enemy's position based on its velocity.
+        """
+        self.position[0] += self.velocity[0]
+        self.position[1] += self.velocity[1]
+
+        # Wrap around the screen if the enemy goes out of bounds
+        if self.position[0] < 0:
+            self.position[0] = WIDTH
+        elif self.position[0] > WIDTH:
+            self.position[0] = 0
+        if self.position[1] < 0:
+            self.position[1] = HEIGHT
+        elif self.position[1] > HEIGHT:
+            self.position[1] = 0
+
+    def display_enemy(self, screen):
+        """
+        Display the enemy object on the screen.
+
+        Args:
+            screen (pygame.Surface): The pygame surface representing the screen.
+        """
+        pygame.draw.circle(screen, self.color, self.position, self.size)
+
+    def is_touching_cell(self, cell):
+        """
+        Check if the enemy is touching a cell.
+
+        Args:
+            cell (Cell): The Cell object.
+
+        Returns:
+            bool: True if the enemy is touching the cell, False otherwise.
+        """
+        distance = self.distance_to_cell(cell)
+        return distance < (self.size + cell.size) / 2
+
+    def distance_to_cell(self, cell):
+        """
+        Calculate the distance between the enemy and a cell.
+
+        Args:
+            cell (Cell): The Cell object.
+
+        Returns:
+            float: The distance between the enemy and the cell.
+        """
+        return ((self.position[0] - cell.position[0]) ** 2 + (self.position[1] - cell.position[1]) ** 2) ** 0.5
+
+
 # Define the Generation class
 class Generation:
     def __init__(self, population_size):
@@ -233,6 +304,20 @@ class Generation:
         screen.blit(text_generation, (20, 20))
         screen.blit(text_timer, (180, 20))
 
+        
+    def display_enemy_count(self, screen, count):
+        """
+        Display the count of enemies on the screen.
+
+        Args:
+            screen (pygame.Surface): The pygame surface representing the screen.
+            count (int): The count of enemies.
+        """
+        font = pygame.font.Font(None, 18)
+        text = font.render("Enemies: {}".format(count), True, BLACK)
+        screen.blit(text, (20, 40))
+
+
     def display_cells(self, screen):
         """
         Display the cells in the generation on the screen.
@@ -287,9 +372,59 @@ def main():
     """
     The main function that initializes a generation and runs the simulation.
     """
-    generation = Generation(population_size=30)
-    generation.run_simulation()
+    generation = Generation(population_size=5)
+    enemies = []
+    enemy_count = 0
 
-# Run the main function
+    pygame.init()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Cell Evolution")
+
+    clock = pygame.time.Clock()
+
+    enemies = []
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return
+
+        screen.fill(WHITE)
+
+        generation.update()
+
+        # Move existing enemies randomly
+        for enemy in enemies:
+            enemy.move_randomly()
+
+        # Create new enemies randomly
+        if random.random() < 0.05:
+            enemy = Enemy()
+            enemies.append(enemy)
+            enemy_count += 1
+
+        # Display enemy count
+        generation.display_enemy_count(screen, enemy_count)
+
+        # Display enemies and check for collisions with cells
+        for enemy in enemies:
+            enemy.display_enemy(screen)
+            for cell in generation.cells:
+                if enemy.is_touching_cell(cell):
+                    enemies.remove(enemy)
+                    generation.cells.remove(cell)
+                    enemy_count -= 1
+                    break
+
+        generation.display_info(screen)
+        generation.display_cells(screen)
+        generation.display_food(screen)
+
+        pygame.display.flip()
+
+        clock.tick(10)  # Set the desired frame rate
+
+
 if __name__ == "__main__":
     main()
