@@ -1,9 +1,10 @@
 import random
 import pygame
+import math
 
 # Define screen dimensions
-WIDTH = 400
-HEIGHT = 400
+WIDTH = 600
+HEIGHT = 600
 
 # Define colors
 WHITE = (255, 255, 255)
@@ -21,6 +22,7 @@ class Cell:
         self.size = 50
         self.position = [WIDTH // 2, HEIGHT // 2]
         self.color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        self.num_sides = random.randint(3, 16)  # Random number of sides between 3 and 16
 
     def update(self, food_list):
         """
@@ -97,11 +99,35 @@ class Cell:
     def display(self, screen):
         """
         Display the cell on the screen.
-        
+
         Args:
             screen (pygame.Surface): The pygame surface representing the screen.
         """
-        pygame.draw.rect(screen, self.color, (self.position[0] - self.size // 2, self.position[1] - self.size // 2, self.size, self.size))
+        if self.num_sides > 2:
+            if self.num_sides == 4:  # Special case for squares
+                pygame.draw.rect(
+                    screen,
+                    self.color,
+                    (self.position[0] - self.size // 2, self.position[1] - self.size // 2, self.size, self.size),
+                )
+            else:
+                radius = self.size // 2
+                angle = 2 * math.pi / self.num_sides
+                vertices = [
+                    (
+                        self.position[0] + int(radius * math.cos(i * angle)),
+                        self.position[1] + int(radius * math.sin(i * angle)),
+                    )
+                    for i in range(self.num_sides)
+                ]
+                pygame.draw.polygon(screen, self.color, vertices)
+        else:
+            pygame.draw.circle(
+                screen,
+                self.color,
+                self.position,
+                self.size // 2,
+            )
 
 # Define the Food class
 class Food:
@@ -253,7 +279,7 @@ class Generation:
 
             pygame.display.flip()
 
-            clock.tick(30)  # Set the desired frame rate
+            clock.tick(10)  # Set the desired frame rate
 
 
 # Define the main function
@@ -261,7 +287,7 @@ def main():
     """
     The main function that initializes a generation and runs the simulation.
     """
-    generation = Generation(population_size=3)
+    generation = Generation(population_size=30)
     generation.run_simulation()
 
 # Run the main function
